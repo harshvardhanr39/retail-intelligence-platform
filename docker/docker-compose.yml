@@ -1,7 +1,7 @@
-version: '3.8'
-
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.8.0
+  build:
+    context: ./airflow
+    dockerfile: Dockerfile
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
@@ -10,12 +10,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
-    _PIP_ADDITIONAL_REQUIREMENTS: >-
-      apache-airflow-providers-slack
-      apache-airflow-providers-postgres
-      dbt-postgres==1.7.0
-      great-expectations
-      pandas pyarrow boto3 faker
+
   volumes:
     - ../orchestration/dags:/opt/airflow/dags
     - ../dbt_project:/opt/airflow/dbt_project
@@ -34,7 +29,7 @@ services:
     environment:
       POSTGRES_USER: retail
       POSTGRES_PASSWORD: retail_secret
-      POSTGRES_DB: retail_db
+      POSTGRES_DB: retail
     ports:
       - "5432:5432"
     volumes:
@@ -152,7 +147,6 @@ services:
   airflow-init:
     <<: *airflow-common
     container_name: airflow-init
-    entrypoint: /bin/bash
     command: >
       bash -c "airflow db migrate &&
       airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@retail.com --password admin123"

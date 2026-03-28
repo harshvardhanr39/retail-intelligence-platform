@@ -73,7 +73,7 @@ def main():
         update_watermark(source_name, new_watermark)
 
         #7. log complete run
-        complete_run(run_id, orders_written, items_written)
+        complete_run(run_id, len(df_orders), orders_written)
     
     except Exception as e:
         print(f"[{source_name}] Error: {str(e)}")

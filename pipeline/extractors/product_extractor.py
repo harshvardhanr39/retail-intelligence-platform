@@ -69,7 +69,9 @@ def main():
         print(f"[{source_name}] Fetched {len(df):,} products")
 
         _,rows_written = write_to_bronze(df, source_name, run_date, s3_bucket)
-        complete_run(run_id, rows_written, 0)
+
+        
+        complete_run(run_id, len(df), rows_written)
 
     except Exception as e:
         print(f"[{source_name}] Error: {str(e)}")

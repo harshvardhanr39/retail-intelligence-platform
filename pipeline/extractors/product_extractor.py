@@ -41,7 +41,7 @@ def main():
         # fetch with retries
         try:
             raw = fetch_products()
-        except Exception as e:
+        except Exception:
             print("[products] FakeStoreAPI failed after 3 retries. Trying fallback...")
             resp=requests.get("https://dummyjson.com/products", timeout=10)
             data = resp.json()

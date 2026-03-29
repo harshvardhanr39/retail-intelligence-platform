@@ -1,6 +1,5 @@
 import uuid
 import random
-import requests
 from datetime import datetime, timedelta
 from faker import Faker
 import psycopg2

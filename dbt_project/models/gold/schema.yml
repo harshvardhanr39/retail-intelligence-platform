@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: mart_daily_revenue
+    description: "Daily revenue metrics with rolling averages and growth rates"
+    columns:
+      - name: date
+        tests: [not_null, unique]
+      - name: total_revenue
+        tests: [not_null]
+      - name: order_count
+        tests: [not_null]
+
+  - name: mart_category_performance
+    description: "Revenue and sales metrics broken down by product category per day"
+    columns:
+      - name: date
+        tests: [not_null]
+      - name: category
+        tests: [not_null]
+
+  - name: mart_inventory_health
+    description: "Inventory levels with stock status flags"
+    columns:
+      - name: sku_id
+        tests: [not_null]
+      - name: status_flag
+        tests:
+          - accepted_values:
+              values: ['out_of_stock','low_stock','healthy','overstock']
+
+  - name: mart_top_products
+    description: "All-time product performance ranked by revenue"
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: rank
+        tests: [not_null]

@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: source_data
-    database: retail
+    database: retail_intelligence_db
     schema: source_data
     description: "Raw transactional tables"
 

@@ -19,7 +19,9 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install "multimethod==1.9.1" "pandera==0.17.2" --force-reinstall
 
       - name: Generate daily orders
         env:

@@ -3,9 +3,6 @@ x-airflow-common: &airflow-common
     context: ./airflow
     dockerfile: Dockerfile
   environment: &airflow-common-env
-    AIRFLOW__LINEAGE__BACKEND: openlineage.lineage_backend.OpenLineageBackend
-    OPENLINEAGE_URL: http://marquez:5000
-    OPENLINEAGE_NAMESPACE: retail-platform
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY}

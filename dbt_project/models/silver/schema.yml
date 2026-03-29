@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned and deduplicated orders from source_data.orders"
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['pending','processing','shipped','delivered','cancelled']
+      - name: total_amount
+        tests:
+          - not_null
+      - name: order_date
+        tests: [not_null]
+
+  - name: stg_order_items
+    description: "Cleaned order line items"
+    columns:
+      - name: item_id
+        tests: [not_null, unique]
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+      - name: quantity
+        tests: [not_null]
+      - name: unit_price
+        tests: [not_null]
+
+  - name: stg_products
+    description: "Cleaned product catalog"
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: price
+        tests: [not_null]
+
+  - name: stg_inventory
+    description: "Cleaned inventory with negative quantities coerced to 0"
+    columns:
+      - name: sku_id
+        tests: [not_null]
+      - name: quantity_on_hand
+        tests: [not_null]

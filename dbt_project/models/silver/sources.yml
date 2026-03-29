@@ -1,0 +1,52 @@
+version: 2
+
+sources:
+  - name: source_data
+    database: retail
+    schema: source_data
+    description: "Raw transactional tables"
+
+    tables:
+      - name: orders
+        loaded_at_field: updated_at
+        freshness:
+          warn_after: {count: 12, period: hour}
+          error_after: {count: 25, period: hour}
+        columns:
+          - name: order_id
+            tests: [not_null, unique]
+          - name: status
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['pending','processing','shipped','delivered','cancelled']
+          - name: total_amount
+            tests: [not_null]
+
+      - name: order_items
+        loaded_at_field: created_at
+        columns:
+          - name: item_id
+            tests: [not_null, unique]
+          - name: quantity
+            tests: [not_null]
+
+      - name: customers
+        loaded_at_field: created_at
+        columns:
+          - name: customer_id
+            tests: [not_null, unique]
+          - name: email
+            tests: [not_null, unique]
+
+      - name: products
+        loaded_at_field: created_at
+        columns:
+          - name: product_id
+            tests: [not_null, unique]
+
+      - name: inventory
+        loaded_at_field: last_count_date
+        columns:
+          - name: sku_id
+            tests: [not_null]

@@ -59,3 +59,4 @@ tenacity==8.2.3           # retry logic
 structlog==24.1.0         # structured logging
 rich==13.7.0              # pretty terminal output
 click==8.1.7              # CLI scriptsmultimethod==1.9.1
+protobuf==4.25.3

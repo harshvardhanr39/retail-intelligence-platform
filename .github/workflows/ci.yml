@@ -95,8 +95,9 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install dbt
-        run: pip install dbt-postgres==1.7.4
+      - name: Install dbt and fix protobuf
+        run: |
+          pip install dbt-postgres==1.7.4 "protobuf==4.25.3"
 
       - name: Run database init SQL
         env:
@@ -122,7 +123,11 @@ jobs:
                 threads: 1
           PROFILE
 
-      - name: dbt compile (validates SQL syntax)
+      - name: Install dbt packages
+        working-directory: dbt_project
+        run: dbt deps
+
+      - name: dbt compile
         working-directory: dbt_project
         run: dbt compile
 

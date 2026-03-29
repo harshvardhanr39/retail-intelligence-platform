@@ -1,11 +1,9 @@
 import pandas as pd 
-import numpy as np
 import random
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import psycopg2
-from psycopg2.extras import execute_batch
 
 load_dotenv()
 
@@ -86,11 +84,11 @@ print(f"   Introduced {num_dupes} duplicate rows (3%)")
 output_path = os.path.join(output_dir, f"inventory_{today}.csv")
 df.to_csv(output_path, index=False)
 print(f"\n✅ Inventory data generated and saved to {output_path}")
-print(f"\n🎉 Done!")
+print("\n🎉 Done!")
 print(f"   Output file : {output_path}")
 print(f"   Total rows  : {len(df)} (500 base + {num_dupes} duplicates)")
 print(f"   Negatives   : {num_negative} rows")
 print(f"   Null dates  : {num_null_dates} rows")
 print(f"   Duplicates  : {num_dupes} rows")
-print(f"\nPreview:")
+print("\nPreview:")
 print(df.head(5).to_string())

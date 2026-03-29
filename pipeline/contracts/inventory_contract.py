@@ -1,5 +1,4 @@
-import pandera as pa
-from pandera import Column, DataFrameSchema, Check
+from pandera import Column, DataFrameSchema
 import pandas as pd
 
 inventory_schema = DataFrameSchema(

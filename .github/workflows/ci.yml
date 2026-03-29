@@ -109,7 +109,7 @@ jobs:
       - name: Write dbt profiles.yml
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml << PROFILE
+          cat > ~/.dbt/profiles.yml << 'PROFILE'
           retail_intelligence:
             target: ci
             outputs:

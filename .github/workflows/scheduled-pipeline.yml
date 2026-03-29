@@ -1,0 +1,89 @@
+name: Scheduled Daily Pipeline
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 3am UTC every day
+  workflow_dispatch:        # allows manual trigger from GitHub UI
+
+jobs:
+  run-pipeline:
+    name: Daily Data Refresh
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate daily orders
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python generators/generate_daily_orders.py
+
+      - name: Generate inventory
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python generators/generate_inventory.py
+
+      - name: Run all extractors
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-west-1
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        run: |
+          python pipeline/extractors/orders_extractor.py
+          python pipeline/extractors/products_extractor.py
+          python pipeline/extractors/inventory_extractor.py
+
+      - name: Run dbt
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pip install dbt-postgres==1.7.4
+          mkdir -p ~/.dbt
+          python3 << 'PYEOF'
+          import os, re
+          url = os.environ['DATABASE_URL']
+          match = re.match(r'postgresql://([^:]+):([^@]+)@([^:/]+):?(\d+)?/(.+)', url)
+          user, pwd, host, port, db = match.groups()
+          port = port or '5432'
+          profile = f"""retail_intelligence:
+            target: prod
+            outputs:
+              prod:
+                type: postgres
+                host: {host}
+                user: {user}
+                password: {pwd}
+                port: {int(port)}
+                dbname: {db}
+                schema: silver
+                threads: 4
+          """
+          with open(os.path.expanduser('~/.dbt/profiles.yml'), 'w') as f:
+              f.write(profile)
+          PYEOF
+          cd dbt_project && dbt run && dbt test
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          if [ "$STATUS" = "success" ]; then
+            ICON="✅"
+            MSG="Daily pipeline completed successfully"
+          else
+            ICON="❌"
+            MSG="Daily pipeline FAILED — check GitHub Actions"
+          fi
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          -H 'Content-type: application/json' \
+          -d "{\"text\": \"${ICON} *Scheduled Pipeline* — ${MSG}\"}"

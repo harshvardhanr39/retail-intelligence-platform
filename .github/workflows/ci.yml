@@ -1,0 +1,151 @@
+name: CI — Test & Lint
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  # ── Job 1: Test Python pipeline code ───────────────────
+  test-pipeline:
+    name: Test Pipeline Code
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: retail
+          POSTGRES_PASSWORD: retail_secret
+          POSTGRES_DB: retail
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run database init SQL
+        env:
+          PGPASSWORD: retail_secret
+        run: |
+          psql -h localhost -U retail -d retail -f pipeline/config/init.sql
+
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check pipeline/ generators/ --ignore E501
+
+      - name: Run pytest with coverage
+        env:
+          DATABASE_URL: postgresql://retail:retail_secret@localhost:5432/retail
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-west-1
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        run: |
+          pytest tests/ -v --cov=pipeline --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage.xml
+        continue-on-error: true
+
+  # ── Job 2: Validate dbt models compile ─────────────────
+  test-dbt:
+    name: Compile dbt Models
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: retail
+          POSTGRES_PASSWORD: retail_secret
+          POSTGRES_DB: retail
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dbt
+        run: pip install dbt-postgres==1.7.4
+
+      - name: Run database init SQL
+        env:
+          PGPASSWORD: retail_secret
+        run: |
+          psql -h localhost -U retail -d retail -f pipeline/config/init.sql
+
+      - name: Write dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << PROFILE
+          retail_intelligence:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                user: retail
+                password: retail_secret
+                port: 5432
+                dbname: retail
+                schema: silver
+                threads: 1
+          PROFILE
+
+      - name: dbt compile (validates SQL syntax)
+        working-directory: dbt_project
+        run: dbt compile
+
+  # ── Job 3: Build Next.js frontend ──────────────────────
+  test-frontend:
+    name: Build Next.js Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Next.js
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: npm run build

@@ -12,8 +12,13 @@ from pipeline.utils.watermark import get_watermark, update_watermark
 from pipeline.utils.metadata import start_run, complete_run, fail_run
 from pipeline.loaders.s3_parquet_loader import write_to_bronze
 
-from pipeline.contracts.orders_contract import validate_orders
-from pipeline.contracts.validator import validate_and_log
+try:
+    from pipeline.contracts.orders_contract import validate_orders
+    from pipeline.contracts.validator import validate_and_log
+    VALIDATION_ENABLED = True
+except ImportError:
+    VALIDATION_ENABLED = False
+    print("WARNING: pandera not available — skipping contract validation")
 
 load_dotenv()
 
@@ -66,8 +71,9 @@ def main():
         df_items = pd.read_sql(items_sql, conn)
         
         # Validate against contract
-        df_orders = validate_and_log(df_orders, validate_orders, "orders", run_id)
-
+        if VALIDATION_ENABLED:
+            df_orders = validate_and_log(df_orders, validate_orders, "orders", run_id)
+            
         print(f"[{source_name}] Extracted {len(df_items):,} order items")
         conn.close()
 

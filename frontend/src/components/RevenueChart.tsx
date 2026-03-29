@@ -33,12 +33,12 @@ export default function RevenueChart({ data }: Props) {
           />
           <YAxis
             tick={{ fill: '#9ca3af', fontSize: 11 }}
-            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+            tickFormatter={(v) => `$${(Number(v) / 1000).toFixed(0)}k`}
           />
           <Tooltip
             contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }}
             labelStyle={{ color: '#f9fafb' }}
-            formatter={(v: number) => [`$${v.toLocaleString()}`, '']}
+            formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, '']}
           />
           <Legend wrapperStyle={{ color: '#9ca3af' }} />
           <Line

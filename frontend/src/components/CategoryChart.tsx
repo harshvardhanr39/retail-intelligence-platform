@@ -43,7 +43,7 @@ export default function CategoryChart({ data }: Props) {
           />
           <Tooltip
             contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: 8 }}
-            formatter={(v: number) => [`$${v.toLocaleString()}`, 'Revenue']}
+            formatter={(v) => [`$${Number(v ?? 0).toLocaleString()}`, 'Revenue']}
           />
           <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
             {chartData.map((_, index) => (

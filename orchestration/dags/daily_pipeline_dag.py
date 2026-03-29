@@ -12,7 +12,7 @@ VENV_PYTHON  = "/home/airflow/.local/bin/python3"
 
 # ── Default args applied to every task ───────────────────
 default_args = {
-    "owner": "data-engineering",
+    "owner": "HvSR",
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
     "email_on_failure": False,

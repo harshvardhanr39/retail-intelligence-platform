@@ -31,23 +31,20 @@ def get_watermark(source_name: str) -> datetime:
     return default
 
 def update_watermark(source_name: str, new_watermark: datetime):
-    """
-    update the last processed timestamp for a given source
-    """
     with get_conn() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("""
-                INSERT INTO pipeline_meta.watermarks 
-                    (source_name, last_watermark)
-                VALUES 
-                    (%s, %s)
-                ON CONFLICT (source_name) DO UPDATE 
-                SET 
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO pipeline_meta.watermarks
+                    (source_name, last_run_at, last_watermark, updated_at)
+                VALUES
+                    (%s, NOW(), %s, NOW())
+                ON CONFLICT (source_name) DO UPDATE
+                SET
+                    last_run_at    = NOW(),
                     last_watermark = EXCLUDED.last_watermark,
-                    last_run_at = NOW(),
-                    updated_at = NOW()
+                    updated_at     = NOW()
             """, (source_name, new_watermark))
         conn.commit()
-    print(f'[{source_name}] Updated watermark to: {new_watermark}')
+    print(f"[{source_name}] Watermark updated to: {new_watermark}")
  
 

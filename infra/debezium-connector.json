@@ -1,0 +1,23 @@
+{
+  "name": "retail-postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "retail",
+    "database.password": "retail_secret",
+    "database.dbname": "retail",
+    "database.server.name": "retail",
+    "topic.prefix": "retail.cdc",
+    "plugin.name": "pgoutput",
+    "publication.name": "retail_cdc",
+    "table.include.list": "source_data.orders,source_data.order_items,source_data.customers",
+    "snapshot.mode": "initial",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "connect"
+  }
+}

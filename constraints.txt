@@ -1,0 +1,3 @@
+multimethod==1.9.1
+pandera==0.17.2
+protobuf==4.25.3

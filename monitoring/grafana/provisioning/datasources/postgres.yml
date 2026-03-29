@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: retail-postgres
+    type: postgres
+    url: postgres:5432
+    database: retail
+    user: retail
+    secureJsonData:
+      password: retail_secret
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1500
+    isDefault: true

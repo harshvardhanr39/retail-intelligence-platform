@@ -1,0 +1,1 @@
+infra/terraform/*.tfstate.backup /home/m5406/projects/retail-intelligence-platform/infra/terraform

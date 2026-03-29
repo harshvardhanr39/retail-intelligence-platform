@@ -60,4 +60,6 @@ docker/volumes/
 
 # IDE
 .idea/
-*.swp
+*.swpinfra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
